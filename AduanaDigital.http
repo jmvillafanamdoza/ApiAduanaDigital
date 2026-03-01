@@ -1,0 +1,6 @@
+@AduanaDigital_HostAddress = http://localhost:5093
+
+GET {{AduanaDigital_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
