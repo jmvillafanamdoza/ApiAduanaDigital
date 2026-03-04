@@ -1,10 +1,17 @@
+using System.Diagnostics;
 using AduanaDigital.Data;
 using AduanaDigital.Services;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// LOGGING
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.AddDebug();
 
 // Inicializar ConnectionFactory con la configuración
 ConnectionFactory.Initialize(builder.Configuration);
@@ -21,9 +28,14 @@ builder.Services.Configure<FormOptions>(options =>
     options.MultipartHeadersLengthLimit = int.MaxValue;
 });
 
+// Kestrel request size (extra)
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestBodySize = 100_000_000; // 100MB
+});
+
 // Add services to the container.
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -34,13 +46,72 @@ builder.Services.AddSwaggerGen(c =>
         Description = "API para gestión de productos de importación"
     });
 
-    // Configurar Swagger para soportar archivos
     c.OperationFilter<FileUploadOperationFilter>();
 });
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Global exception handler
+app.UseExceptionHandler(errorApp =>
+{
+    errorApp.Run(async context =>
+    {
+        var feature = context.Features.Get<IExceptionHandlerFeature>();
+        var ex = feature?.Error;
+
+        var traceId = Activity.Current?.Id ?? context.TraceIdentifier;
+
+        var logger = context.RequestServices.GetRequiredService<ILoggerFactory>()
+            .CreateLogger("GlobalException");
+
+        logger.LogError(ex,
+            "Unhandled exception. TraceId={TraceId} Path={Path} Method={Method} Query={QueryString}",
+            traceId,
+            context.Request.Path,
+            context.Request.Method,
+            context.Request.QueryString.ToString());
+
+        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+        context.Response.ContentType = "application/json";
+
+        await context.Response.WriteAsJsonAsync(new
+        {
+            error = "Ocurrió un error inesperado",
+            traceId,
+            path = context.Request.Path.ToString()
+        });
+    });
+});
+
+// Request logging
+app.Use(async (context, next) =>
+{
+    var logger = context.RequestServices.GetRequiredService<ILoggerFactory>()
+        .CreateLogger("RequestLogger");
+
+    var traceId = Activity.Current?.Id ?? context.TraceIdentifier;
+
+    logger.LogInformation("Incoming {Method} {Path} TraceId={TraceId} ContentLength={Len}",
+        context.Request.Method,
+        context.Request.Path,
+        traceId,
+        context.Request.ContentLength);
+
+    try
+    {
+        await next();
+        logger.LogInformation("Outgoing {StatusCode} TraceId={TraceId}",
+            context.Response.StatusCode,
+            traceId);
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Request failed TraceId={TraceId}", traceId);
+        throw;
+    }
+});
+
+// Swagger
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -48,10 +119,20 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 app.UseAuthorization();
-
 app.MapControllers();
+
+// Process-level crash capture
+AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
+{
+    Console.Error.WriteLine($"[FATAL] UnhandledException: {e.ExceptionObject}");
+};
+
+TaskScheduler.UnobservedTaskException += (sender, e) =>
+{
+    Console.Error.WriteLine($"[FATAL] UnobservedTaskException: {e.Exception}");
+    e.SetObserved();
+};
 
 app.Run();
 

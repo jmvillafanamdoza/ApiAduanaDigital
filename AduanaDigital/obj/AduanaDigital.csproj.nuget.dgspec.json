@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "D:\\jvillafana Scripts\\SU\\ArancelSolution\\Servicio\\ApiAduanaDigital\\AduanaDigital\\AduanaDigital.csproj": {}
+    "D:\\StarUps\\Arancelito\\ApiAduanaDigital\\AduanaDigital\\AduanaDigital.csproj": {}
   },
   "projects": {
-    "D:\\jvillafana Scripts\\SU\\ArancelSolution\\Servicio\\ApiAduanaDigital\\AduanaDigital\\AduanaDigital.csproj": {
+    "D:\\StarUps\\Arancelito\\ApiAduanaDigital\\AduanaDigital\\AduanaDigital.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\jvillafana Scripts\\SU\\ArancelSolution\\Servicio\\ApiAduanaDigital\\AduanaDigital\\AduanaDigital.csproj",
+        "projectUniqueName": "D:\\StarUps\\Arancelito\\ApiAduanaDigital\\AduanaDigital\\AduanaDigital.csproj",
         "projectName": "AduanaDigital",
-        "projectPath": "D:\\jvillafana Scripts\\SU\\ArancelSolution\\Servicio\\ApiAduanaDigital\\AduanaDigital\\AduanaDigital.csproj",
-        "packagesPath": "C:\\Users\\southtech3\\.nuget\\packages\\",
-        "outputPath": "D:\\jvillafana Scripts\\SU\\ArancelSolution\\Servicio\\ApiAduanaDigital\\AduanaDigital\\obj\\",
+        "projectPath": "D:\\StarUps\\Arancelito\\ApiAduanaDigital\\AduanaDigital\\AduanaDigital.csproj",
+        "packagesPath": "C:\\Users\\jmvil\\.nuget\\packages\\",
+        "outputPath": "D:\\StarUps\\Arancelito\\ApiAduanaDigital\\AduanaDigital\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
-          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+          "F:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\southtech3\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\jmvil\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -94,7 +94,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.310/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.308/PortableRuntimeIdentifierGraph.json"
         }
       }
     }
