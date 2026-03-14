@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("AduanaDigital")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5ef752dcbddfb60f4db826425bf74ae407e4e9f0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9257db0d4e00984b0f33754b568604d02488bde0")]
 [assembly: System.Reflection.AssemblyProductAttribute("AduanaDigital")]
 [assembly: System.Reflection.AssemblyTitleAttribute("AduanaDigital")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

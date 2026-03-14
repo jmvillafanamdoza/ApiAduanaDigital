@@ -6362,11 +6362,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\StarUps\\Arancelito\\ApiAduanaDigital\\AduanaDigital\\AduanaDigital.csproj",
+      "projectUniqueName": "D:\\AIwara\\Arancelito\\ApiAduanaDigital\\AduanaDigital\\AduanaDigital.csproj",
       "projectName": "AduanaDigital",
-      "projectPath": "D:\\StarUps\\Arancelito\\ApiAduanaDigital\\AduanaDigital\\AduanaDigital.csproj",
+      "projectPath": "D:\\AIwara\\Arancelito\\ApiAduanaDigital\\AduanaDigital\\AduanaDigital.csproj",
       "packagesPath": "C:\\Users\\jmvil\\.nuget\\packages\\",
-      "outputPath": "D:\\StarUps\\Arancelito\\ApiAduanaDigital\\AduanaDigital\\obj\\",
+      "outputPath": "D:\\AIwara\\Arancelito\\ApiAduanaDigital\\AduanaDigital\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "F:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
