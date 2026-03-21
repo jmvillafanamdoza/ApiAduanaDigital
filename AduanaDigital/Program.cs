@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using AduanaDigital.Data;
 using AduanaDigital.Services;
 using Microsoft.AspNetCore.Diagnostics;
@@ -13,28 +13,45 @@ builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 builder.Logging.AddDebug();
 
-// Inicializar ConnectionFactory con la configuraci�n
+// Inicializar ConnectionFactory con la configuración
 ConnectionFactory.Initialize(builder.Configuration);
 
-// Registrar servicios en el contenedor de DI
+// ── Registrar servicios ──────────────────────────────────────
 builder.Services.AddSingleton<ProductoImportacionRepository>();
+builder.Services.AddSingleton<PackingListRepository>();
+builder.Services.AddSingleton<FacturaComercialRepository>();
+builder.Services.AddSingleton<ProveedorRepository>();
 builder.Services.AddScoped<ExcelImportService>();
 
-// Configurar l�mite de tama�o de archivos
+// Configurar límite de tamaño de archivos
 builder.Services.Configure<FormOptions>(options =>
 {
-    options.MultipartBodyLengthLimit = 100_000_000; // 100MB
+    options.MultipartBodyLengthLimit = 100_000_000;
     options.ValueLengthLimit = int.MaxValue;
     options.MultipartHeadersLengthLimit = int.MaxValue;
 });
 
-// Kestrel request size (extra)
 builder.WebHost.ConfigureKestrel(options =>
 {
-    options.Limits.MaxRequestBodySize = 100_000_000; // 100MB
+    options.Limits.MaxRequestBodySize = 100_000_000;
 });
 
-// Add services to the container.
+// ── CORS ─────────────────────────────────────────────────────
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("FrontendPolicy", policy =>
+    {
+        policy
+            .WithOrigins(
+                "http://localhost:5173",
+                "http://localhost:3000",
+                "https://localhost:44361"
+            )
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -43,10 +60,12 @@ builder.Services.AddSwaggerGen(c =>
     {
         Title = "Aduana Digital API",
         Version = "v1",
-        Description = "API para gesti�n de productos de importaci�n"
+        Description = "API para gestión de productos de importación"
     });
-
     c.OperationFilter<FileUploadOperationFilter>();
+
+    // Resolver conflictos de rutas en Swagger (por si acaso)
+    c.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
 });
 
 var app = builder.Build();
@@ -58,25 +77,20 @@ app.UseExceptionHandler(errorApp =>
     {
         var feature = context.Features.Get<IExceptionHandlerFeature>();
         var ex = feature?.Error;
-
         var traceId = Activity.Current?.Id ?? context.TraceIdentifier;
-
         var logger = context.RequestServices.GetRequiredService<ILoggerFactory>()
             .CreateLogger("GlobalException");
 
         logger.LogError(ex,
             "Unhandled exception. TraceId={TraceId} Path={Path} Method={Method} Query={QueryString}",
-            traceId,
-            context.Request.Path,
-            context.Request.Method,
+            traceId, context.Request.Path, context.Request.Method,
             context.Request.QueryString.ToString());
 
         context.Response.StatusCode = StatusCodes.Status500InternalServerError;
         context.Response.ContentType = "application/json";
-
         await context.Response.WriteAsJsonAsync(new
         {
-            error = "Ocurri� un error inesperado",
+            error = "Ocurrió un error inesperado",
             traceId,
             path = context.Request.Path.ToString()
         });
@@ -88,21 +102,16 @@ app.Use(async (context, next) =>
 {
     var logger = context.RequestServices.GetRequiredService<ILoggerFactory>()
         .CreateLogger("RequestLogger");
-
     var traceId = Activity.Current?.Id ?? context.TraceIdentifier;
 
     logger.LogInformation("Incoming {Method} {Path} TraceId={TraceId} ContentLength={Len}",
-        context.Request.Method,
-        context.Request.Path,
-        traceId,
-        context.Request.ContentLength);
+        context.Request.Method, context.Request.Path, traceId, context.Request.ContentLength);
 
     try
     {
         await next();
         logger.LogInformation("Outgoing {StatusCode} TraceId={TraceId}",
-            context.Response.StatusCode,
-            traceId);
+            context.Response.StatusCode, traceId);
     }
     catch (Exception ex)
     {
@@ -111,22 +120,19 @@ app.Use(async (context, next) =>
     }
 });
 
-// Swagger
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
+app.UseCors("FrontendPolicy");
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
 
-// Process-level crash capture
 AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
-{
     Console.Error.WriteLine($"[FATAL] UnhandledException: {e.ExceptionObject}");
-};
 
 TaskScheduler.UnobservedTaskException += (sender, e) =>
 {
@@ -136,39 +142,67 @@ TaskScheduler.UnobservedTaskException += (sender, e) =>
 
 app.Run();
 
-// Filtro personalizado para Swagger que maneja IFormFile
+// ── Filtro Swagger para multipart/form-data ──────────────────
+// Maneja IFormFile + parámetros FromForm adicionales (ej: clienteId)
 public class FileUploadOperationFilter : IOperationFilter
 {
     public void Apply(OpenApiOperation operation, OperationFilterContext context)
     {
-        var fileParameters = context.MethodInfo.GetParameters()
+        var parameters = context.MethodInfo.GetParameters();
+
+        var fileParams = parameters
             .Where(p => p.ParameterType == typeof(IFormFile))
             .ToList();
 
-        if (fileParameters.Any())
+        var formParams = parameters
+            .Where(p => p.CustomAttributes.Any(a =>
+                a.AttributeType.Name == "FromFormAttribute"))
+            .ToList();
+
+        // Solo actuar si hay al menos un IFormFile
+        if (!fileParams.Any()) return;
+
+        var properties = new Dictionary<string, OpenApiSchema>();
+        var required = new HashSet<string>();
+
+        // Agregar IFormFile params como binary
+        foreach (var p in fileParams)
         {
-            operation.RequestBody = new OpenApiRequestBody
+            properties[p.Name!] = new OpenApiSchema { Type = "string", Format = "binary" };
+            required.Add(p.Name!);
+        }
+
+        // Agregar otros FromForm params (ej: clienteId como integer)
+        foreach (var p in formParams.Where(p => p.ParameterType != typeof(IFormFile)))
+        {
+            var schema = p.ParameterType == typeof(int) || p.ParameterType == typeof(long)
+                ? new OpenApiSchema { Type = "integer" }
+                : new OpenApiSchema { Type = "string" };
+
+            properties[p.Name!] = schema;
+        }
+
+        operation.RequestBody = new OpenApiRequestBody
+        {
+            Content = new Dictionary<string, OpenApiMediaType>
             {
-                Content = new Dictionary<string, OpenApiMediaType>
+                ["multipart/form-data"] = new OpenApiMediaType
                 {
-                    ["multipart/form-data"] = new OpenApiMediaType
+                    Schema = new OpenApiSchema
                     {
-                        Schema = new OpenApiSchema
-                        {
-                            Type = "object",
-                            Properties = fileParameters.ToDictionary(
-                                p => p.Name!,
-                                p => new OpenApiSchema
-                                {
-                                    Type = "string",
-                                    Format = "binary"
-                                }
-                            ),
-                            Required = new HashSet<string>(fileParameters.Select(p => p.Name!))
-                        }
+                        Type = "object",
+                        Properties = properties,
+                        Required = required
                     }
                 }
-            };
-        }
+            }
+        };
+
+        // Limpiar parámetros duplicados que Swagger agrega automáticamente
+        var toRemove = operation.Parameters
+            .Where(p => properties.ContainsKey(p.Name))
+            .ToList();
+        foreach (var p in toRemove)
+            operation.Parameters.Remove(p);
     }
 }

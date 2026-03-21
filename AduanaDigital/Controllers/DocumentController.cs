@@ -13,34 +13,22 @@ namespace AduanaDigital.Controllers
             _logger = logger;
         }
 
+        /// GET /api/Document/health
         [HttpGet("health")]
         public IActionResult Health()
         {
-            return Ok(new
-            {
-                exito = true,
-                mensaje = "DocumentController activo"
-            });
+            return Ok(new { exito = true, mensaje = "API Aduana Digital activa" });
         }
 
+        /// POST /api/Document/upload
         [HttpPost("upload")]
-        [RequestSizeLimit(50_000_000)] // 50MB
+        [RequestSizeLimit(50_000_000)]
         public IActionResult Upload(IFormFile archivo)
         {
             if (archivo == null || archivo.Length == 0)
-            {
-                return BadRequest(new
-                {
-                    exito = false,
-                    mensaje = "El archivo es requerido"
-                });
-            }
+                return BadRequest(new { exito = false, mensaje = "El archivo es requerido" });
 
-            _logger.LogInformation(
-                "Archivo recibido en DocumentController: {FileName} ({Size} bytes)",
-                archivo.FileName,
-                archivo.Length
-            );
+            _logger.LogInformation("Archivo recibido: {FileName} ({Size} bytes)", archivo.FileName, archivo.Length);
 
             return Ok(new
             {

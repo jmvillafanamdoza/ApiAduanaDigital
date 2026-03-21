@@ -1,95 +1,72 @@
+ï»¿using AduanaDigital.Data;
 using AduanaDigital.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AduanaDigital.Controllers
 {
+    /// DTO para recibir archivo + clienteId en un solo FromForm
+    public class ImportarExcelRequest
+    {
+        public IFormFile Archivo { get; set; } = null!;
+        public int ClienteId { get; set; }
+    }
+
     [ApiController]
     [Route("api/[controller]")]
     public class ImportacionExcelController : ControllerBase
     {
         private readonly ExcelImportService _excelService;
+        private readonly FacturaComercialRepository _facturaRepo;
         private readonly ILogger<ImportacionExcelController> _logger;
 
         public ImportacionExcelController(
             ExcelImportService excelService,
+            FacturaComercialRepository facturaRepo,
             ILogger<ImportacionExcelController> logger)
         {
             _excelService = excelService;
+            _facturaRepo = facturaRepo;
             _logger = logger;
         }
 
-        /// <summary>
-        /// Importa productos desde un archivo Excel
-        /// </summary>
-        /// <param name="archivo">Archivo Excel (.xlsx o .xls)</param>
-        /// <returns>Resultado de la importación</returns>
+        /// POST /api/ImportacionExcel/importar
         [HttpPost("importar")]
-        [RequestSizeLimit(100_000_000)] // 100MB
-        public async Task<IActionResult> ImportarDesdeExcel(IFormFile archivo)  // SIN [FromForm]
+        [RequestSizeLimit(100_000_000)]
+        public async Task<IActionResult> Importar([FromForm] ImportarExcelRequest request)
         {
-            if (archivo == null || archivo.Length == 0)
-            {
-                return BadRequest(new
-                {
-                    mensaje = "El archivo es requerido",
-                    exito = false
-                });
-            }
+            if (request.Archivo == null || request.Archivo.Length == 0)
+                return BadRequest(new { exito = false, mensaje = "El archivo es requerido" });
 
-            // Validar extensión del archivo
-            var extension = Path.GetExtension(archivo.FileName).ToLowerInvariant();
+            var extension = Path.GetExtension(request.Archivo.FileName).ToLowerInvariant();
             if (extension != ".xlsx" && extension != ".xls")
-            {
-                return BadRequest(new
-                {
-                    mensaje = "Solo se permiten archivos Excel (.xlsx, .xls)",
-                    exito = false
-                });
-            }
+                return BadRequest(new { exito = false, mensaje = "Solo se permiten archivos Excel (.xlsx, .xls)" });
 
-            // Validar tamaño (50MB)
-            if (archivo.Length > 50_000_000)
-            {
-                return BadRequest(new
-                {
-                    mensaje = "El archivo excede el tamaño máximo permitido (50MB)",
-                    exito = false
-                });
-            }
+            if (request.Archivo.Length > 50_000_000)
+                return BadRequest(new { exito = false, mensaje = "El archivo excede el tamaÃ±o mÃ¡ximo (50MB)" });
+
+            if (request.ClienteId <= 0)
+                return BadRequest(new { exito = false, mensaje = "El clienteId es obligatorio" });
 
             try
             {
-                _logger.LogInformation(
-                    "Iniciando importación de archivo: {FileName} ({Size} KB)",
-                    archivo.FileName,
-                    archivo.Length / 1024
-                );
+                _logger.LogInformation("Importando: {FileName} para cliente {ClienteId}",
+                    request.Archivo.FileName, request.ClienteId);
 
-                var resultado = await _excelService.ImportarProductosDesdeExcel(archivo);
+                var resultado = await _excelService.ImportarProductosDesdeExcel(request.Archivo);
 
-                _logger.LogInformation(
-                    "Importación completada. Exitosos: {Exitosos}, Fallidos: {Fallidos}",
-                    resultado.RegistrosExitosos,
-                    resultado.RegistrosFallidos
-                );
-
-                if (resultado.Exitoso)
+                if (resultado.Exitoso && resultado.PackingListId > 0)
                 {
-                    return Ok(resultado);
+                    await _facturaRepo.AsociarClientePackingList(request.ClienteId, resultado.PackingListId);
+                    _logger.LogInformation("Packing List {Id} asociado al cliente {ClienteId}",
+                        resultado.PackingListId, request.ClienteId);
                 }
-                else
-                {
-                    return BadRequest(resultado);
-                }
+
+                return resultado.Exitoso ? Ok(resultado) : BadRequest(resultado);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error durante la importación del archivo {FileName}", archivo.FileName);
-                return StatusCode(500, new
-                {
-                    mensaje = $"Error al procesar el archivo: {ex.Message}",
-                    exito = false
-                });
+                _logger.LogError(ex, "Error al importar {FileName}", request.Archivo.FileName);
+                return StatusCode(500, new { exito = false, mensaje = $"Error: {ex.Message}" });
             }
         }
     }

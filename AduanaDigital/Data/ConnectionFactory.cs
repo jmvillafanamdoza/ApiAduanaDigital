@@ -17,12 +17,17 @@ namespace AduanaDigital.Data
         {
             get
             {
-                var sqlConnection = new SqlConnection();
+                // Clave alineada con appsettings.json
+                var connectionString = _configuration.GetConnectionString("DBConnection_AduanaDigital");
 
-                if (sqlConnection == null) return null;
+                if (string.IsNullOrWhiteSpace(connectionString))
+                    throw new InvalidOperationException(
+                        "La cadena de conexión 'DBConnection_AduanaDigital' no está configurada en appsettings.json.");
 
-                sqlConnection.ConnectionString = _configuration.GetConnectionString("DBConnection_PlanSalud");
-                sqlConnection.Open();
+                var sqlConnection = new SqlConnection(connectionString);
+
+                if (sqlConnection.State != ConnectionState.Open)
+                    sqlConnection.Open();
 
                 return sqlConnection;
             }

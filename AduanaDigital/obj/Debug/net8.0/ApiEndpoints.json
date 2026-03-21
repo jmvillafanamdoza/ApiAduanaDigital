@@ -1,8 +1,44 @@
 [
   {
-    "ContainingType": "AduanaDigital.Controllers.ImportacionExcelController",
-    "Method": "ImportarDesdeExcel",
-    "RelativePath": "api/ImportacionExcel/importar",
+    "ContainingType": "AduanaDigital.Controllers.ClientesController",
+    "Method": "GetClientes",
+    "RelativePath": "api/Clientes",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "AduanaDigital.Controllers.ClientesController",
+    "Method": "CrearCliente",
+    "RelativePath": "api/Clientes",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "AduanaDigital.Models.CrearClienteRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "AduanaDigital.Controllers.DocumentController",
+    "Method": "Health",
+    "RelativePath": "api/Document/health",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "AduanaDigital.Controllers.DocumentController",
+    "Method": "Upload",
+    "RelativePath": "api/Document/upload",
     "HttpMethod": "POST",
     "IsController": true,
     "Order": 0,
@@ -16,16 +52,126 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "AduanaDigital.Controllers.ProductoImportacionController",
-    "Method": "InsertarProducto",
-    "RelativePath": "api/ProductoImportacion",
+    "ContainingType": "AduanaDigital.Controllers.FacturasComercialesController",
+    "Method": "GetFacturas",
+    "RelativePath": "api/FacturasComerciales",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "AduanaDigital.Controllers.FacturasComercialesController",
+    "Method": "AgregarItem",
+    "RelativePath": "api/FacturasComerciales/{id}/items",
     "HttpMethod": "POST",
     "IsController": true,
     "Order": 0,
     "Parameters": [
       {
-        "Name": "producto",
-        "Type": "AduanaDigital.Models.ProductoImportacion",
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "item",
+        "Type": "AduanaDigital.Models.FacturaDetalleRow",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "AduanaDigital.Controllers.FacturasComercialesController",
+    "Method": "GetPorCliente",
+    "RelativePath": "api/FacturasComerciales/cliente/{clienteId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "clienteId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "AduanaDigital.Controllers.FacturasComercialesController",
+    "Method": "GenerarFactura",
+    "RelativePath": "api/FacturasComerciales/generar",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "GenerarFacturaRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "AduanaDigital.Controllers.FacturasComercialesController",
+    "Method": "GetItemsPackingList",
+    "RelativePath": "api/FacturasComerciales/packing/{packingListId}/items",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "packingListId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "AduanaDigital.Controllers.ImportacionExcelController",
+    "Method": "Importar",
+    "RelativePath": "api/ImportacionExcel/importar",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "Archivo",
+        "Type": "Microsoft.AspNetCore.Http.IFormFile",
+        "IsRequired": false
+      },
+      {
+        "Name": "ClienteId",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "AduanaDigital.Controllers.ProveedoresController",
+    "Method": "GetProveedores",
+    "RelativePath": "api/Proveedores",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "AduanaDigital.Controllers.ProveedoresController",
+    "Method": "CrearProveedor",
+    "RelativePath": "api/Proveedores",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "AduanaDigital.Models.CrearProveedorRequest",
         "IsRequired": true
       }
     ],
