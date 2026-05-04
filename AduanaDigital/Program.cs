@@ -1,12 +1,15 @@
-﻿using System.Diagnostics;
-using AduanaDigital.Data;
+﻿using AduanaDigital.Data;
 using AduanaDigital.Services;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.OpenApi.Models;
+using OfficeOpenXml;
 using Swashbuckle.AspNetCore.SwaggerGen;
+using System.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
+ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
 
 // LOGGING
 builder.Logging.ClearProviders();
@@ -21,6 +24,7 @@ builder.Services.AddSingleton<ProductoImportacionRepository>();
 builder.Services.AddSingleton<PackingListRepository>();
 builder.Services.AddSingleton<FacturaComercialRepository>();
 builder.Services.AddSingleton<ProveedorRepository>();
+builder.Services.AddSingleton<CloudflareR2Service>();
 builder.Services.AddScoped<ExcelImportService>();
 
 // Configurar límite de tamaño de archivos

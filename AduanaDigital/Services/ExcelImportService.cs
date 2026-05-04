@@ -1,4 +1,4 @@
-using AduanaDigital.Data;
+﻿using AduanaDigital.Data;
 using AduanaDigital.Models;
 using OfficeOpenXml;
 using OfficeOpenXml.Drawing;
@@ -10,27 +10,30 @@ namespace AduanaDigital.Services
     public class ExcelImportService
     {
         private readonly PackingListRepository _packingRepo;
+        private readonly CloudflareR2Service _r2Service;
         private readonly IConfiguration _configuration;
         private readonly ILogger<ExcelImportService> _logger;
 
         public ExcelImportService(
             PackingListRepository packingRepo,
+            CloudflareR2Service r2Service,
             IConfiguration configuration,
             ILogger<ExcelImportService> logger)
         {
-            _packingRepo = packingRepo;
+            _packingRepo   = packingRepo;
+            _r2Service     = r2Service;
             _configuration = configuration;
-            _logger = logger;
+            _logger        = logger;
         }
 
-        public async Task<ResultadoImportacion>  ImportarProductosDesdeExcel(IFormFile archivoExcel)
+        public async Task<ResultadoImportacion> ImportarProductosDesdeExcel(IFormFile archivoExcel)
         {
             var resultado = new ResultadoImportacion();
 
             if (archivoExcel == null || archivoExcel.Length == 0)
             {
                 resultado.Exitoso = false;
-                resultado.Mensaje = "El archivo est� vac�o o no se recibi� correctamente";
+                resultado.Mensaje = "El archivo está vacío o no se recibió correctamente";
                 return resultado;
             }
 
@@ -45,7 +48,7 @@ namespace AduanaDigital.Services
 
                 _logger.LogInformation("Packing List creado con ID: {Id}", packingListId);
 
-                using var stream = archivoExcel.OpenReadStream();
+                using var stream  = archivoExcel.OpenReadStream();
                 using var package = new ExcelPackage(stream);
 
                 if (package.Workbook.Worksheets.Count == 0)
@@ -60,7 +63,7 @@ namespace AduanaDigital.Services
                 if (worksheet.Dimension == null)
                 {
                     resultado.Exitoso = false;
-                    resultado.Mensaje = "La hoja de trabajo est� vac�a";
+                    resultado.Mensaje = "La hoja de trabajo está vacía";
                     return resultado;
                 }
 
@@ -75,14 +78,14 @@ namespace AduanaDigital.Services
 
                 _logger.LogInformation("Procesando {RowCount} filas", rowCount - 1);
 
-                // 2. Insertar cada fila en TADI_PACKING_LIST_DETALLE
+                // 2. Insertar cada fila
                 for (int row = 2; row <= rowCount; row++)
                 {
                     try
                     {
+                        // ── Imagen ────────────────────────────────────────────────────────
                         string fotoUrl = "https://via.placeholder.com/150";
 
-                        // Intentar extraer imagen (sin romper el flujo si falla)
                         try
                         {
                             var picture = worksheet.Drawings
@@ -94,10 +97,28 @@ namespace AduanaDigital.Services
                             if (picture != null)
                             {
                                 byte[]? rawBytes = TryGetImageBytes(picture);
+
                                 if (rawBytes != null && rawBytes.Length > 0)
                                 {
-                                    // TODO: subir a Azure/Cloudinary y asignar a fotoUrl
-                                    _logger.LogInformation("Imagen encontrada en fila {Row}", row);
+                                    // Convertir a JPEG para uniformidad
+                                    byte[] jpegBytes = ConvertToJpeg(rawBytes);
+
+                                    // Nombre único: codigo_packingId_fila.jpg
+                                    var codigo   = worksheet.Cells[row, 2].Value?.ToString() ?? $"item_{row}";
+                                    var fileName = $"{SanitizarNombre(codigo)}_{packingListId}_{row}.jpg";
+
+                                    // Subir a Cloudflare R2
+                                    var urlSubida = await _r2Service.SubirImagenAsync(jpegBytes, fileName);
+
+                                    if (!string.IsNullOrEmpty(urlSubida))
+                                    {
+                                        fotoUrl = urlSubida;
+                                        _logger.LogInformation("Imagen subida para fila {Row}: {Url}", row, fotoUrl);
+                                    }
+                                    else
+                                    {
+                                        _logger.LogWarning("No se pudo subir imagen para fila {Row}, usando placeholder", row);
+                                    }
                                 }
                             }
                         }
@@ -105,28 +126,29 @@ namespace AduanaDigital.Services
                         {
                             _logger.LogWarning(exImg, "No se pudo procesar imagen en fila {Row}", row);
                         }
+                        // ─────────────────────────────────────────────────────────────────
 
                         var detalle = new PackingListDetalle
                         {
-                            PackingListId = packingListId,
-                            Codigo = worksheet.Cells[row, 2].Value?.ToString() ?? "",
-                            FotoUrl = fotoUrl,
-                            NombreChino = worksheet.Cells[row, 4].Value?.ToString() ?? "",
-                            PcsPorCaja = int.TryParse(worksheet.Cells[row, 5].Value?.ToString(), out int pcs) ? pcs : 0,
-                            CbmPorCaja = decimal.TryParse(worksheet.Cells[row, 6].Value?.ToString(), out decimal cbm) ? cbm : 0,
-                            Explicacion = worksheet.Cells[row, 7].Value?.ToString() ?? "",
+                            PackingListId  = packingListId,
+                            Codigo         = worksheet.Cells[row, 2].Value?.ToString() ?? "",
+                            FotoUrl        = fotoUrl,
+                            NombreChino    = worksheet.Cells[row, 4].Value?.ToString() ?? "",
+                            PcsPorCaja     = int.TryParse(worksheet.Cells[row, 5].Value?.ToString(), out int pcs) ? pcs : 0,
+                            CbmPorCaja     = decimal.TryParse(worksheet.Cells[row, 6].Value?.ToString(), out decimal cbm) ? cbm : 0,
+                            Explicacion    = worksheet.Cells[row, 7].Value?.ToString() ?? "",
                             TiendaContacto = worksheet.Cells[row, 8].Value?.ToString() ?? "",
-                            NombreEspanol = worksheet.Cells[row, 9].Value?.ToString() ?? "",
-                            AutSant = worksheet.Cells[row, 10].Value?.ToString() ?? "",
-                            TotalCajas = int.TryParse(worksheet.Cells[row, 11].Value?.ToString(), out int cajas) ? cajas : 0,
-                            TotalCbm = decimal.TryParse(worksheet.Cells[row, 12].Value?.ToString(), out decimal ttCbm) ? ttCbm : 0,
-                            TotalRmb = decimal.TryParse(worksheet.Cells[row, 13].Value?.ToString(), out decimal ttRmb) ? ttRmb : 0
+                            NombreEspanol  = worksheet.Cells[row, 9].Value?.ToString() ?? "",
+                            AutSant        = worksheet.Cells[row, 10].Value?.ToString() ?? "",
+                            TotalCajas     = int.TryParse(worksheet.Cells[row, 11].Value?.ToString(), out int cajas) ? cajas : 0,
+                            TotalCbm       = decimal.TryParse(worksheet.Cells[row, 12].Value?.ToString(), out decimal ttCbm) ? ttCbm : 0,
+                            TotalRmb       = decimal.TryParse(worksheet.Cells[row, 13].Value?.ToString(), out decimal ttRmb) ? ttRmb : 0,
                         };
 
                         if (string.IsNullOrWhiteSpace(detalle.Codigo))
                         {
                             resultado.RegistrosFallidos++;
-                            resultado.Errores.Add($"Fila {row}: El c�digo es obligatorio");
+                            resultado.Errores.Add($"Fila {row}: El código es obligatorio");
                             continue;
                         }
 
@@ -152,48 +174,48 @@ namespace AduanaDigital.Services
                 }
 
                 resultado.Exitoso = resultado.RegistrosExitosos > 0;
-                resultado.Mensaje = $"Importaci�n completada. Exitosos: {resultado.RegistrosExitosos}, Fallidos: {resultado.RegistrosFallidos}";
+                resultado.Mensaje = $"Importación completada. Exitosos: {resultado.RegistrosExitosos}, Fallidos: {resultado.RegistrosFallidos}";
             }
             catch (Exception ex)
             {
-                resultado.Exitoso = false;
-                resultado.Mensaje = $"Error al procesar el archivo: {ex.Message}";
-                _logger.LogError(ex, "Error cr�tico durante la importaci�n");
+                resultado.Exitoso  = false;
+                resultado.Mensaje  = $"Error al procesar el archivo: {ex.Message}";
+                _logger.LogError(ex, "Error crítico durante la importación");
             }
 
             return resultado;
         }
 
+        // ── Helpers ───────────────────────────────────────────────────────────
+
         private byte[]? TryGetImageBytes(ExcelPicture picture)
         {
             try
             {
-                var imageObj = picture.Image;
-                if (imageObj == null) return null;
-
-                var prop = imageObj.GetType().GetProperty("ImageBytes");
-                if (prop != null) return prop.GetValue(imageObj) as byte[];
-
-                var streamProp = imageObj.GetType().GetProperty("Stream");
-                if (streamProp?.GetValue(imageObj) is Stream imgStream)
-                {
-                    using var ms = new MemoryStream();
-                    imgStream.CopyTo(ms);
-                    return ms.ToArray();
-                }
-
-                return null;
+                return picture.Image?.ImageBytes;
             }
             catch { return null; }
         }
 
         private byte[] ConvertToJpeg(byte[] rawBytes)
         {
-            using var inputMs = new MemoryStream(rawBytes);
-            using var image = SixLabors.ImageSharp.Image.Load(inputMs);
+            using var inputMs  = new MemoryStream(rawBytes);
+            using var image    = SixLabors.ImageSharp.Image.Load(inputMs);
             using var outputMs = new MemoryStream();
-            image.SaveAsJpeg(outputMs);
+            image.SaveAsJpeg(outputMs, new JpegEncoder { Quality = 85 });
             return outputMs.ToArray();
+        }
+
+        /// <summary>
+        /// Elimina caracteres inválidos para nombres de archivo/objeto en R2.
+        /// </summary>
+        private static string SanitizarNombre(string nombre)
+        {
+            var invalidos = Path.GetInvalidFileNameChars()
+                .Concat(new[] { ' ', '#', '?', '&' })
+                .ToArray();
+
+            return string.Join("_", nombre.Split(invalidos, StringSplitOptions.RemoveEmptyEntries));
         }
     }
 

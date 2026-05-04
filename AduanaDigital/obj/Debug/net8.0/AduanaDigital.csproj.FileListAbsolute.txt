@@ -289,6 +289,8 @@ D:\AIwara\Arancelito\ApiAduanaDigital\AduanaDigital\bin\Debug\net8.0\AduanaDigit
 D:\AIwara\Arancelito\ApiAduanaDigital\AduanaDigital\bin\Debug\net8.0\AduanaDigital.runtimeconfig.json
 D:\AIwara\Arancelito\ApiAduanaDigital\AduanaDigital\bin\Debug\net8.0\AduanaDigital.dll
 D:\AIwara\Arancelito\ApiAduanaDigital\AduanaDigital\bin\Debug\net8.0\AduanaDigital.pdb
+D:\AIwara\Arancelito\ApiAduanaDigital\AduanaDigital\bin\Debug\net8.0\AWSSDK.Core.dll
+D:\AIwara\Arancelito\ApiAduanaDigital\AduanaDigital\bin\Debug\net8.0\AWSSDK.S3.dll
 D:\AIwara\Arancelito\ApiAduanaDigital\AduanaDigital\bin\Debug\net8.0\Azure.Core.dll
 D:\AIwara\Arancelito\ApiAduanaDigital\AduanaDigital\bin\Debug\net8.0\Azure.Identity.dll
 D:\AIwara\Arancelito\ApiAduanaDigital\AduanaDigital\bin\Debug\net8.0\Dapper.dll
@@ -323,7 +325,6 @@ D:\AIwara\Arancelito\ApiAduanaDigital\AduanaDigital\bin\Debug\net8.0\System.Iden
 D:\AIwara\Arancelito\ApiAduanaDigital\AduanaDigital\bin\Debug\net8.0\System.Memory.Data.dll
 D:\AIwara\Arancelito\ApiAduanaDigital\AduanaDigital\bin\Debug\net8.0\System.Security.Cryptography.Pkcs.dll
 D:\AIwara\Arancelito\ApiAduanaDigital\AduanaDigital\bin\Debug\net8.0\System.Security.Cryptography.ProtectedData.dll
-D:\AIwara\Arancelito\ApiAduanaDigital\AduanaDigital\bin\Debug\net8.0\System.Xml.XPath.XmlDocument.dll
 D:\AIwara\Arancelito\ApiAduanaDigital\AduanaDigital\bin\Debug\net8.0\cs\Microsoft.Data.SqlClient.resources.dll
 D:\AIwara\Arancelito\ApiAduanaDigital\AduanaDigital\bin\Debug\net8.0\de\Microsoft.Data.SqlClient.resources.dll
 D:\AIwara\Arancelito\ApiAduanaDigital\AduanaDigital\bin\Debug\net8.0\es\Microsoft.Data.SqlClient.resources.dll
@@ -342,15 +343,12 @@ D:\AIwara\Arancelito\ApiAduanaDigital\AduanaDigital\bin\Debug\net8.0\runtimes\wi
 D:\AIwara\Arancelito\ApiAduanaDigital\AduanaDigital\bin\Debug\net8.0\runtimes\win-arm64\native\Microsoft.Data.SqlClient.SNI.dll
 D:\AIwara\Arancelito\ApiAduanaDigital\AduanaDigital\bin\Debug\net8.0\runtimes\win-x64\native\Microsoft.Data.SqlClient.SNI.dll
 D:\AIwara\Arancelito\ApiAduanaDigital\AduanaDigital\bin\Debug\net8.0\runtimes\win-x86\native\Microsoft.Data.SqlClient.SNI.dll
-D:\AIwara\Arancelito\ApiAduanaDigital\AduanaDigital\bin\Debug\net8.0\runtimes\win\lib\netcoreapp3.0\Microsoft.Win32.SystemEvents.dll
 D:\AIwara\Arancelito\ApiAduanaDigital\AduanaDigital\bin\Debug\net8.0\runtimes\win-arm64\native\sni.dll
 D:\AIwara\Arancelito\ApiAduanaDigital\AduanaDigital\bin\Debug\net8.0\runtimes\win-x64\native\sni.dll
 D:\AIwara\Arancelito\ApiAduanaDigital\AduanaDigital\bin\Debug\net8.0\runtimes\win-x86\native\sni.dll
 D:\AIwara\Arancelito\ApiAduanaDigital\AduanaDigital\bin\Debug\net8.0\runtimes\unix\lib\net8.0\System.Data.SqlClient.dll
 D:\AIwara\Arancelito\ApiAduanaDigital\AduanaDigital\bin\Debug\net8.0\runtimes\win\lib\net8.0\System.Data.SqlClient.dll
 D:\AIwara\Arancelito\ApiAduanaDigital\AduanaDigital\bin\Debug\net8.0\runtimes\win\lib\net8.0\System.Diagnostics.EventLog.dll
-D:\AIwara\Arancelito\ApiAduanaDigital\AduanaDigital\bin\Debug\net8.0\runtimes\unix\lib\netcoreapp3.0\System.Drawing.Common.dll
-D:\AIwara\Arancelito\ApiAduanaDigital\AduanaDigital\bin\Debug\net8.0\runtimes\win\lib\netcoreapp3.0\System.Drawing.Common.dll
 D:\AIwara\Arancelito\ApiAduanaDigital\AduanaDigital\bin\Debug\net8.0\runtimes\win\lib\net8.0\System.Security.Cryptography.Pkcs.dll
 D:\AIwara\Arancelito\ApiAduanaDigital\AduanaDigital\obj\Debug\net8.0\AduanaDigital.csproj.AssemblyReference.cache
 D:\AIwara\Arancelito\ApiAduanaDigital\AduanaDigital\obj\Debug\net8.0\rpswa.dswa.cache.json
@@ -376,3 +374,9 @@ D:\AIwara\Arancelito\ApiAduanaDigital\AduanaDigital\obj\Debug\net8.0\refint\Adua
 D:\AIwara\Arancelito\ApiAduanaDigital\AduanaDigital\obj\Debug\net8.0\AduanaDigital.pdb
 D:\AIwara\Arancelito\ApiAduanaDigital\AduanaDigital\obj\Debug\net8.0\AduanaDigital.genruntimeconfig.cache
 D:\AIwara\Arancelito\ApiAduanaDigital\AduanaDigital\obj\Debug\net8.0\ref\AduanaDigital.dll
+D:\AIwara\Arancelito\ApiAduanaDigital\AduanaDigital\bin\Debug\net8.0\EPPlus.Interfaces.dll
+D:\AIwara\Arancelito\ApiAduanaDigital\AduanaDigital\bin\Debug\net8.0\EPPlus.System.Drawing.dll
+D:\AIwara\Arancelito\ApiAduanaDigital\AduanaDigital\bin\Debug\net8.0\Microsoft.Extensions.Configuration.FileExtensions.dll
+D:\AIwara\Arancelito\ApiAduanaDigital\AduanaDigital\bin\Debug\net8.0\Microsoft.Extensions.Configuration.Json.dll
+D:\AIwara\Arancelito\ApiAduanaDigital\AduanaDigital\bin\Debug\net8.0\Microsoft.IO.RecyclableMemoryStream.dll
+D:\AIwara\Arancelito\ApiAduanaDigital\AduanaDigital\bin\Debug\net8.0\runtimes\win\lib\net8.0\Microsoft.Win32.SystemEvents.dll
